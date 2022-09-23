@@ -1,0 +1,5 @@
+package-as: sct
+
+move-folders:
+  sct/sct: sct
+  sct/sct_options: sct_options
