@@ -2,7 +2,7 @@
 ## Title: ScrollingCombatText
 ## Notes: Adds Scrolling Combat Text above your character
 ## Author: Grayhoof
-## Version: 9.1_16
+## Version: 9.2_3
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## OptionalDeps: Ace3, LibSharedMedia-3.0

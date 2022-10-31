@@ -3,7 +3,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"   xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
 	<!-- CHECKBUTTON TEMPLATE -->
-	<CheckButton name="SCTCheckTemplate" inherits="OptionsCheckButtonTemplate" virtual="true">
+	<CheckButton name="SCTCheckTemplate" inherits="UICheckButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="26" y="26"/>
+		</Size>
 		<HitRectInsets>
 			<AbsInset left="0" right="0" top="0" bottom="0"/>
 		</HitRectInsets>
@@ -91,12 +94,50 @@
 	</CheckButton>
 
 	<!-- SLIDER READONLY TEMPLATE -->
+	<Slider name="SCT_UISliderTemplate" orientation="HORIZONTAL" enableMouse="true" inherits="BackdropTemplate" virtual="true">
+		<HitRectInsets>
+			<AbsInset left="0" right="0" top="-10" bottom="-10"/>
+		</HitRectInsets>
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="BACKDROP_SLIDER_8_8" type="global"/>
+		</KeyValues>
+		<ThumbTexture parentKey="Thumb" name="$parentThumb" file="Interface\Buttons\UI-SliderBar-Button-Horizontal">
+			<Size x="32" y="32"/>
+		</ThumbTexture>
+	</Slider>
+
+	<Slider name="SCT_UISliderTemplateWithLabels" inherits="SCT_UISliderTemplate" virtual="true">
+		<KeyValues>
+			<KeyValue key="type" value="CONTROLTYPE_SLIDER" type="global"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parentText" parentKey="Text" inherits="GameFontHighlight">
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentLow" parentKey="Low" inherits="GameFontHighlightSmall" text="LOW">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="-4" y="3"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentHigh" parentKey="High" inherits="GameFontHighlightSmall" text="HIGH">
+					<Anchors>
+						<Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="4" y="3"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Slider>
+
 	<Frame name="SCTSliderTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="160" y="18"/>
 		</Size>
 		<Frames>
-			<Slider name="$parentSlider" inherits="OptionsSliderTemplate">
+			<Slider name="$parentSlider" inherits="SCT_UISliderTemplateWithLabels">
+				<Size x="144" y="17"/>
 				<Anchors>
 					<Anchor point="LEFT">
 						<Offset>
@@ -134,7 +175,8 @@
 			<AbsDimension x="160" y="18"/>
 		</Size>
 		<Frames>
-			<Slider name="$parentSlider" inherits="OptionsSliderTemplate">
+			<Slider name="$parentSlider" inherits="SCT_UISliderTemplateWithLabels">
+				<Size x="144" y="17"/>
 				<Anchors>
 					<Anchor point="LEFT">
 						<Offset>
@@ -366,7 +408,7 @@
 		</Size>
 		<Layers>
 			<Layer level="BORDER">
-				<FontString name="$parent_Name" inherits="GameFontNormalSmall" wraponspaces="false" justifyH="LEFT" text="">
+				<FontString name="$parent_Name" inherits="GameFontNormalSmall" justifyH="LEFT" text="">
 					<Size>
 						<AbsDimension x="180" y="20"/>
 					</Size>
@@ -416,9 +458,9 @@
 		<Size>
 			<AbsDimension x="145" y="25"/>
 		</Size>
-		<NormalText inherits="GameFontHighlightSmall"/>
-		<DisabledText inherits="GameFontDisableSmall"/>
-		<HighlightText inherits="GameFontHighlightSmall"/>
+		<NormalFont inherits="GameFontHighlightSmall"/>
+		<DisabledFont inherits="GameFontDisableSmall"/>
+		<HighlightFont inherits="GameFontHighlightSmall"/>
 		<Scripts>
 			<OnClick>
 				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
@@ -440,9 +482,9 @@
 		<Size>
 			<AbsDimension x="145" y="30"/>
 		</Size>
-		<NormalText inherits="GameFontHighlightSmall"/>
-		<DisabledText inherits="GameFontDisableSmall"/>
-		<HighlightText inherits="GameFontHighlightSmall"/>
+		<NormalFont inherits="GameFontHighlightSmall"/>
+		<DisabledFont inherits="GameFontDisableSmall"/>
+		<HighlightFont inherits="GameFontHighlightSmall"/>
 		<Scripts>
 			<OnClick>
 				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
@@ -518,20 +560,7 @@
 	</Frame>
 
 	<!-- MAIN OPTION FRAME -->
-	<Frame name="SCTOptions" toplevel="true" frameStrata="MEDIUM" movable="true" enableMouse="true" hidden="true" parent="UIParent">
-		<TitleRegion>
-		  <Size>
-				<AbsDimension x="150" y="40" />
-			</Size>
-			<Anchors>
-				<Anchor point="TOP">
-					<Offset>
-						<AbsDimension x="0" y="20" />
-					</Offset>
-				</Anchor>
-			</Anchors>
-	  </TitleRegion>
-
+	<Frame name="SCTOptions" toplevel="true" frameStrata="MEDIUM" enableMouse="true" hidden="true" parent="UIParent">
 		<Size>
 			<AbsDimension x="490" y="400"/>
 		</Size>
@@ -832,12 +861,12 @@
 					<!-- Frame 1 -->
 					<Button name="SCTOptionsFrame_Misc14" inherits="SCTButtonTemplate">
 						<Size>
-							<AbsDimension x="75" y="21"/>
+							<AbsDimension x="95" y="21"/>
 						</Size>
 						<Anchors>
 							<Anchor point="TOP" relativePoint="TOP" relativeTo="SCTOptions_FramesFrame">
 								<Offset>
-									<AbsDimension x="-100" y="-10" />
+									<AbsDimension x="-120" y="-10" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -853,7 +882,7 @@
 					<!-- Frame 2 -->
 					<Button name="SCTOptionsFrame_Misc20" inherits="SCTButtonTemplate">
 						<Size>
-							<AbsDimension x="75" y="21"/>
+							<AbsDimension x="95" y="21"/>
 						</Size>
 						<Anchors>
 							<Anchor point="TOP" relativePoint="TOP" relativeTo="SCTOptions_FramesFrame">
@@ -874,12 +903,12 @@
 					<!-- Message -->
 					<Button name="SCTOptionsFrame_Misc15" inherits="SCTButtonTemplate">
 						<Size>
-							<AbsDimension x="75" y="21"/>
+							<AbsDimension x="95" y="21"/>
 						</Size>
 						<Anchors>
 							<Anchor point="TOP" relativePoint="TOP" relativeTo="SCTOptions_FramesFrame">
 								<Offset>
-									<AbsDimension x="100" y="-10" />
+									<AbsDimension x="120" y="-10" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -891,49 +920,48 @@
 					</Button>
 
 					<!-- Test Button -->
-    			<Button name="SCTOptionsFrame_Misc28" inherits="SCTButtonTemplate">
-    				<Size>
-    					<AbsDimension x="100" y="21"/>
-    				</Size>
-    				<Anchors>
-    					<Anchor point="BOTTOM">
-    						<Offset>
-    							<AbsDimension x="0" y="15"/>
-    						</Offset>
-    					</Anchor>
-    				</Anchors>
-    				<Scripts>
-    					<OnClick>
-    						SCT:ShowTest();
-    					</OnClick>
-    				</Scripts>
-    			</Button>
+					<Button name="SCTOptionsFrame_Misc28" inherits="SCTButtonTemplate">
+						<Size>
+							<AbsDimension x="100" y="21"/>
+						</Size>
+						<Anchors>
+							<Anchor point="BOTTOM">
+								<Offset>
+									<AbsDimension x="0" y="15"/>
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								SCT:ShowTest();
+							</OnClick>
+						</Scripts>
+					</Button>
 
-    			<!-- Example Frame  -->
-    			<Frame name="SCT_EXAMPLETEXT" toplevel="true" frameStrata="DIALOG" hidden="true">
-    				<Size>
-    					<AbsDimension x="24" y="24"/>
-    				</Size>
-    				<Anchors>
-    					<Anchor point="CENTER">
-    						<Offset>
-    							<AbsDimension x="0" y="60"/>
-    						</Offset>
-    					</Anchor>
-    				</Anchors>
-    				<Layers>
-    					<Layer level="ARTWORK">
-    						<FontString name="SCTaniExampleData1" inherits="GameFontNormal"/>
-    						<FontString name="SCTaniExampleData2" inherits="GameFontNormal"/>
-    						<FontString name="SCTMsgExample1" inherits="GameFontNormal" justifyH="CENTER" outline="NORMAL">
-    							<FontHeight>
-    								<AbsValue val="20"/>
-    							</FontHeight>
-    						</FontString>
-    					</Layer>
-    				</Layers>
-    			</Frame>
-
+					<!-- Example Frame  -->
+					<Frame name="SCT_EXAMPLETEXT" toplevel="true" frameStrata="DIALOG" hidden="true">
+						<Size>
+							<AbsDimension x="24" y="24"/>
+						</Size>
+						<Anchors>
+							<Anchor point="CENTER">
+								<Offset>
+									<AbsDimension x="0" y="60"/>
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Layers>
+							<Layer level="ARTWORK">
+								<FontString name="SCTaniExampleData1" inherits="GameFontNormal"/>
+								<FontString name="SCTaniExampleData2" inherits="GameFontNormal"/>
+								<FontString name="SCTMsgExample1" inherits="GameFontNormal" justifyH="CENTER" outline="NORMAL">
+									<FontHeight>
+										<AbsValue val="20"/>
+									</FontHeight>
+								</FontString>
+							</Layer>
+						</Layers>
+					</Frame>
 				</Frames>
 				<Scripts>
 					<OnShow>
@@ -950,7 +978,7 @@
 					<AbsDimension x="450" y="305"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="SCTOptions_EventsFrame"/>
+					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="SCTOptions_FramesFrame"/>
 				</Anchors>
 				<Frames>
 
@@ -1075,16 +1103,8 @@
 					</Frame>
 
 					<Frame name="SCTAnimationSubFrame" hidden="false">
-						<Backdrop bgFile="Interface\ChatFrame\ChatFrameBackground" edgeFile="Interface\ChatFrame\ChatFrameBackground" tile="false">
-							<BackgroundInsets>
-								<AbsInset left="0" right="0" top="0" bottom="0" />
-							</BackgroundInsets>
-							<EdgeSize>
-								<AbsValue val="1" />
-							</EdgeSize>
-						</Backdrop>
 						<Size>
-							<AbsDimension x="200" y="165"/>
+							<AbsDimension x="220" y="165"/>
 						</Size>
 						<Anchors>
 							<Anchor point="TOPLEFT" relativeTo="SCTOptionsFrame_Selection1" relativePoint="TOPLEFT">
@@ -1121,7 +1141,7 @@
 					<AbsDimension x="450" y="305"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="SCTOptions_EventsFrame"/>
+					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="SCTOptions_FramesFrame"/>
 				</Anchors>
 				<Frames>
 
@@ -2418,17 +2438,6 @@
   						</Offset>
   					</Anchor>
   				</Anchors>
-      		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-      			<EdgeSize>
-      				<AbsValue val="16"/>
-      			</EdgeSize>
-      			<TileSize>
-      				<AbsValue val="16"/>
-      			</TileSize>
-      			<BackgroundInsets>
-      				<AbsInset left="5" right="5" top="5" bottom="5"/>
-      			</BackgroundInsets>
-      		</Backdrop>
 			    <Scripts>
 					<OnLoad>
 						if (BackdropTemplateMixin and "BackdropTemplate") then
@@ -2574,17 +2583,6 @@
 						</Offset>
 					</Anchor>
 				</Anchors>
-    		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-    			<EdgeSize>
-    				<AbsValue val="16"/>
-    			</EdgeSize>
-    			<TileSize>
-    				<AbsValue val="16"/>
-    			</TileSize>
-    			<BackgroundInsets>
-    				<AbsInset left="5" right="5" top="5" bottom="5"/>
-    			</BackgroundInsets>
-    		</Backdrop>
 			    <Scripts>
 					<OnLoad>
 						if (BackdropTemplateMixin and "BackdropTemplate") then

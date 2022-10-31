@@ -1,14 +1,5 @@
 --The Options Page variables
 
-local isWoWClassic, isWoWBcc, isWoWRetail = false, false, false
-if (_G["WOW_PROJECT_ID"] == _G["WOW_PROJECT_CLASSIC"]) then
-	isWoWClassic = true
-elseif (_G["WOW_PROJECT_ID"] == _G["WOW_PROJECT_BURNING_CRUSADE_CLASSIC"]) then
-	isWoWBcc = true
-else
-	isWoWRetail = true
-end
-
 --Event and Damage option values
 SCT.OPTIONS = {};
 SCT.OPTIONS.FrameEventFrames = { };
@@ -61,23 +52,17 @@ SCT.OPTIONS.FrameCheckButtons [SCT.LOCALS.OPTION_CHECK17.name] = { index = 17, t
 SCT.OPTIONS.FrameCheckButtons [SCT.LOCALS.OPTION_CHECK18.name] = { index = 18, tooltipText = SCT.LOCALS.OPTION_CHECK18.tooltipText, SCTVar = "NAMEPLATES"};
 SCT.OPTIONS.FrameCheckButtons [SCT.LOCALS.OPTION_CHECK19.name] = { index = 19, tooltipText = SCT.LOCALS.OPTION_CHECK19.tooltipText, SCTFuncInit = function()
   --setup WoW Healing Flags
-  if (not isWoWClassic) then -- CVar didn't exist in classic
-    if (GetCVar("floatingCombatTextCombatHealing") == "0") then
-      return true
-    else
-      return false
-    end
+  if (GetCVar("floatingCombatTextCombatHealing") == "0") then
+    return true
   else
     return false
   end
 end, SCTFuncChange = function(self)
   --set WoW Healing Flags
-  if (not isWoWClassic) then -- CVar didn't exist in classic
-    if (self:GetChecked() or false) then
-	  SetCVar("floatingCombatTextCombatHealing", 0)
-	else
-	  SetCVar("floatingCombatTextCombatHealing", 1)
-	end
+  if (self:GetChecked() or false) then
+    SetCVar("floatingCombatTextCombatHealing", 0)
+  else
+	SetCVar("floatingCombatTextCombatHealing", 1)
   end
 end };
 SCT.OPTIONS.FrameCheckButtons [SCT.LOCALS.OPTION_CHECK20.name] = { index = 20, tooltipText = SCT.LOCALS.OPTION_CHECK20.tooltipText, SCTVar = "ICON"};

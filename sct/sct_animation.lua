@@ -146,7 +146,7 @@ function SCT:NameplateAnimation(adat, parent)
 end
 
 ----------------------
--- Upate animations that are being used
+-- Update animations that are being used
 function SCT:UpdateAnimation(aniframe, elapsed)
   local anyActive = false
   local i, key, value
@@ -318,7 +318,7 @@ function SCT:VerticalAnimation(adat)
   local max = sct_MAX_DISTANCE*.5
   adat.delay = adat.delay + 1
   if (adat.delay > (max/step)) then
-    adat.alpha = adat.alpha - alphastep
+    adat.alpha = math.max(0, adat.alpha - alphastep)
   end
   adat.posY = adat.posY + adat.addY
 end
@@ -342,7 +342,7 @@ function SCT:RainbowAnimation(adat)
   adat.posY = adat.posY + adat.addY
   adat.posX = adat.posX - 2.2 * adat.sidedir
   if ( adat.posY < (adat.bottompoint - sct_MAX_DISTANCE) ) then
-    adat.alpha = adat.alpha - 0.05
+    adat.alpha = math.max(0, adat.alpha - 0.05)
   end
 end
 
@@ -362,7 +362,7 @@ function SCT:HorizontalAnimation(adat)
   local max = sct_SIDE_POINT*.5
   adat.delay = adat.delay + 1
   if (adat.delay > (max/step)) then
-    adat.alpha = adat.alpha - alphastep
+    adat.alpha = math.max(0, adat.alpha - alphastep)
   end
   adat.posX = adat.posX - (adat.addX * adat.sidedir)
 end
@@ -391,7 +391,7 @@ function SCT:AngledDownAnimation(adat)
   else
       adat.posY = adat.posY + db["MOVEMENT"]
       adat.posX = adat.posX - db["MOVEMENT"] * adat.sidedir
-      adat.alpha = adat.alpha - 0.02
+      adat.alpha = math.max(0, adat.alpha - 0.02)
   end
 end
 
@@ -418,7 +418,7 @@ function SCT:AngledUpAnimation(adat)
       adat.delay = adat.delay + 1
   else
       adat.posY = adat.posY + db["MOVEMENT"]
-      adat.alpha = adat.alpha - 0.02
+      adat.alpha = math.max(0, adat.alpha - 0.02)
   end
 end
 
@@ -452,7 +452,7 @@ function SCT:SprinklerAnimation(adat)
   else
       adat.posY = adat.posY + (adat.addY * .1)
       adat.posX = adat.posX + (adat.addX * .1)
-      adat.alpha = adat.alpha - 0.02
+      adat.alpha = math.max(0, adat.alpha - 0.02)
   end
 end
 
@@ -491,7 +491,7 @@ function SCT:HUDCurvedAnimation(adat)
   local max = (adat.toppoint - adat.bottompoint)/2
   adat.delay = adat.delay + 1
   if (adat.delay > (max/step)) then
-    adat.alpha = adat.alpha - alphastep
+    adat.alpha = math.max(0, adat.alpha - alphastep)
   end
   adat.posY = adat.posY + adat.addY
   adat.posX = CalculateCircleCordX(adat)
@@ -505,7 +505,7 @@ function SCT:HUDAngledAnimation(adat)
   local max = (adat.toppoint - adat.bottompoint)/2
   adat.delay = adat.delay + 1
   if (adat.delay > (max/step)) then
-    adat.alpha = adat.alpha - alphastep
+    adat.alpha = math.max(0, adat.alpha - alphastep)
   end
   adat.posY = adat.posY + adat.addY
   adat.posX = CalculateAngleCordX(adat)
@@ -518,7 +518,7 @@ function SCT:IconInit(adat, icon)
   if not adat.icon then
     adat.icon = SCT_ANIMATION_FRAME:CreateTexture(nil, "ARTWORK")
     adat.icon:ClearAllPoints()
-    adat.icon:SetTexCoord(.1,.9,.1,.9)
+    adat.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
   end
   --adjust/fix alignment HUD alignments
   if (adat.iconside == 3) then
@@ -527,9 +527,9 @@ function SCT:IconInit(adat, icon)
     adat.iconside = adat.sidedir
   end
   if adat.iconside == 1 then
-    adat.icon:SetPoint("RIGHT",adat,"LEFT", -5)
+    adat.icon:SetPoint("RIGHT",adat,"LEFT", -adat.textsize / 4, 0)
   else
-    adat.icon:SetPoint("LEFT",adat,"RIGHT", 5)
+    adat.icon:SetPoint("LEFT",adat,"RIGHT", adat.textsize / 4, 0)
   end
   adat.icon:SetHeight(adat.textsize)
   adat.icon:SetWidth(adat.textsize)

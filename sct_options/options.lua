@@ -9,7 +9,37 @@ local tinsert = function(t,v)
 end
 local pairs = pairs
 
+local securecall = securecall;
+local next = next;
+local function SecureNext(elements, key)
+	return securecall(next, elements, key);
+end
 
+-- see "Blizzard_Deprecated.lua" for 10.0.0
+local InterfaceOptions_AddCategory = InterfaceOptions_AddCategory;
+
+if (not InterfaceOptions_AddCategory) then
+	InterfaceOptions_AddCategory = function(frame, addOn, position)
+		-- cancel is no longer a default option. May add menu extension for this.
+		frame.OnCommit = frame.okay;
+		frame.OnDefault = frame.default;
+		frame.OnRefresh = frame.refresh;
+
+		if frame.parent then
+			local category = Settings.GetCategory(frame.parent);
+			local subcategory, layout = Settings.RegisterCanvasLayoutSubcategory(category, frame, frame.name, frame.name);
+			subcategory.ID = frame.name;
+			return subcategory, category;
+		else
+			local category, layout = Settings.RegisterCanvasLayoutCategory(frame, frame.name, frame.name);
+			category.ID = frame.name;
+			Settings.RegisterAddOnCategory(category);
+			return category;
+		end
+	end
+end
+
+--set sct tab table
 SCT.OptionFrames = { ["SCTOptionsFrame_Misc21"] = "SCTOptions_EventsFrame",
                      ["SCTOptionsFrame_Misc18"] = "SCTOptions_FramesFrame",
                      ["SCTOptionsFrame_Misc19"] = "SCTOptions_SpellFrame",
@@ -19,7 +49,6 @@ SCT.OptionFrames = { ["SCTOptionsFrame_Misc21"] = "SCTOptions_EventsFrame",
 SCT.OptionFrameFrames = { ["SCTOptionsFrame_Misc14"] = {frame="SCTOptions_TextFrame", example="SCTaniExampleData1"},
                           ["SCTOptionsFrame_Misc20"] = {frame="SCTOptions_TextFrame", example="SCTaniExampleData2"},
                           ["SCTOptionsFrame_Misc15"] = {frame="SCTOptions_MessageFrame", example="SCTMsgExample1"}}
-
 
 ------------------------------
 --Copy table to table
@@ -581,7 +610,7 @@ end
 --change frame tabs
 function SCT:OptionFrameTabClick(tab)
   self:ToggleFrameTab(tab:GetName(),self.OptionFrameFrames[tab:GetName()].frame)
-  PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB )
+  PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
 end
 
 ----------------------
@@ -666,11 +695,7 @@ end
 ----------------------
 --change Sticky Mode
 function SCT:ChangeStickyMode(stickyOn)
-  if (stickyOn) then
-    BlizzardOptionsPanel_CheckButton_Enable(SCTOptionsFrame_CheckButton15)
-  else
-    BlizzardOptionsPanel_CheckButton_Disable(SCTOptionsFrame_CheckButton15)
-  end
+  SCTOptionsFrame_CheckButton15:SetEnabled(stickyOn)
 end
 
 ---------------------
@@ -752,6 +777,42 @@ function SCT:ShowTest()
   SCT:DisplayMessage( SCT.LOCALS.MSG_EXAMPLE, color )
 end
 
+local function expandOptions(categoryName)
+	if Settings and Settings.OpenToCategory then -- since df
+		for index, tbl in ipairs(SettingsPanel:GetCategoryList().groups) do -- see SettingsPanelMixin:OpenToCategory() in "Blizzard_SettingsPanel.lua"
+			for index, category in ipairs(tbl.categories) do
+				if category:GetName() == categoryName then
+					if not category.expanded then
+						category.expanded = true
+						SettingsPanel:GetCategoryList():CreateCategories()
+					end
+					return
+				end
+			end
+		end
+	else -- before df
+		local elementToDisplay -- see InterfaceOptionsFrame_OpenToCategory() in "InterfaceOptionsFrame.lua"
+
+		for i, element in SecureNext, INTERFACEOPTIONS_ADDONCATEGORIES do
+			if ( categoryName and element.name and element.name == categoryName ) then
+				elementToDisplay = element
+				break
+			end
+		end
+
+		if ( not elementToDisplay ) then
+			return
+		end
+
+		local buttons = InterfaceOptionsFrameAddOns.buttons
+		for i, button in SecureNext, buttons do
+			if ( elementToDisplay.name and button.element and (button.element.name == elementToDisplay.name and button.element.collapsed) ) then
+				OptionsListButtonToggle_OnClick(button.toggle)
+			end
+		end
+	end
+end
+
 function SCT:MakeBlizzOptions()
   self:OptionsFrame_OnShow()
 
@@ -785,6 +846,8 @@ function SCT:MakeBlizzOptions()
   SCTOptions_SaveLoadFrame.parent = "SCT"
   SCTOptions_SaveLoadFrame.default = function() SCT:Reset() end
   InterfaceOptions_AddCategory(SCTOptions_SaveLoadFrame)
+
+  expandOptions("SCT")
 end
 
 

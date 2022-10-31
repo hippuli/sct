@@ -2,7 +2,7 @@
 ## Title: SCT Options
 ## Notes: Options menu for SCT (LoadOnDemand)
 ## Author: Grayhoof
-## Version: 9.1_16
+## Version: 9.2_3
 ## DefaultState: Enabled
 ## LoadOnDemand: 1
 ## Dependencies: sct

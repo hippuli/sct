@@ -50,15 +50,20 @@ local FrameForOnUpdate_timeSinceLastUpdate = 0
 
 local CD_cooldowns, CD_watching, CD_ignoredSpells = {}, {}, {}
 
-local isWoWClassic, isWoWBcc, isWoWWotlkc, isWoWRetail = false, false, false, false;
+-- classic support
+local isWoWClassic, isWoWBcc, isWoWWotlkc, isWoWSl, isWoWRetail = false, false, false, false, false;
 if (_G["WOW_PROJECT_ID"] == _G["WOW_PROJECT_CLASSIC"]) then
 	isWoWClassic = true;
 elseif (_G["WOW_PROJECT_ID"] == _G["WOW_PROJECT_BURNING_CRUSADE_CLASSIC"]) then
 	isWoWBcc = true;
 elseif (_G["WOW_PROJECT_ID"] == _G["WOW_PROJECT_WRATH_CLASSIC"]) then
 	isWoWWotlkc = true;
-else
-	isWoWRetail = true;
+else -- retail
+	if (_G["LE_EXPANSION_LEVEL_CURRENT"] == _G["LE_EXPANSION_SHADOWLANDS"]) then
+		isWoWSl = true;
+	else
+		isWoWRetail = true;
+	end
 end
 
 --Blizzard APi calls
@@ -93,6 +98,30 @@ local GetSpellInfo = GetSpellInfo
 local GetSpellTexture = GetSpellTexture
 local GetTime = GetTime
 local IsInInstance = IsInInstance
+
+-- see "Blizzard_Deprecated.lua" for 10.0.0
+local InterfaceOptions_AddCategory = InterfaceOptions_AddCategory;
+
+if (not InterfaceOptions_AddCategory) then
+	InterfaceOptions_AddCategory = function(frame, addOn, position)
+		-- cancel is no longer a default option. May add menu extension for this.
+		frame.OnCommit = frame.okay;
+		frame.OnDefault = frame.default;
+		frame.OnRefresh = frame.refresh;
+
+		if frame.parent then
+			local category = Settings.GetCategory(frame.parent);
+			local subcategory, layout = Settings.RegisterCanvasLayoutSubcategory(category, frame, frame.name, frame.name);
+			subcategory.ID = frame.name;
+			return subcategory, category;
+		else
+			local category, layout = Settings.RegisterCanvasLayoutCategory(frame, frame.name, frame.name);
+			category.ID = frame.name;
+			Settings.RegisterAddOnCategory(category);
+			return category;
+		end
+	end
+end
 
 --LUA calls
 local pairs = pairs
@@ -283,7 +312,36 @@ end
 
 ----------------------
 -- Show the Option Menu
-function SCT:ShowMenu()
+local function openOptions(categoryName, subcategoryName)
+	if Settings and Settings.OpenToCategory then -- since df
+		for index, tbl in ipairs(SettingsPanel:GetCategoryList().groups) do -- see SettingsPanelMixin:OpenToCategory() in "Blizzard_SettingsPanel.lua"
+			for index, category in ipairs(tbl.categories) do
+				if category:GetName() == categoryName then
+					Settings.OpenToCategory(category:GetID(), category:GetName())
+					if subcategoryName then
+						for index, subcategory in ipairs(category:GetSubcategories()) do
+							if subcategory:GetName() == subcategoryName then
+								SettingsPanel:SelectCategory(subcategory)
+								return
+							end
+						end
+					end
+					return
+				end
+			end
+		end
+	else -- before df
+		if (not InterfaceOptionsFrame:IsShown()) then
+			InterfaceOptionsFrame_Show()
+		end
+		InterfaceOptionsFrame_OpenToCategory(categoryName)
+		if subcategoryName then
+			InterfaceOptionsFrame_OpenToCategory(subcategoryName)
+		end
+	end
+end
+
+function SCT:ShowMenu(makeBlizzOptionsOnly)
   local loaded, message = LoadAddOn("sct_options")
   if (loaded) then
     PlaySound(SOUNDKIT.IG_MAINMENU_OPEN)
@@ -293,8 +351,9 @@ function SCT:ShowMenu()
     else
       SCT:OptionsFrame_OnShow()
     end
-    InterfaceOptionsFrame_OpenToCategory("SCT "..SCT.LOCALS.OPTION_MISC21.name)
-    InterfaceOptionsFrame_OpenToCategory("SCT "..SCT.LOCALS.OPTION_MISC21.name)
+	if (not makeBlizzOptionsOnly) then
+	  openOptions("SCT", "SCT "..SCT.LOCALS.OPTION_MISC21.name)
+	end
   else
     PlaySound(SOUNDKIT.TELL_MESSAGE)
     SCT:Print(SCT.LOCALS.Load_Error.." "..message)
@@ -599,12 +658,12 @@ end
 
 ----------------------
 -- Displays Parsed info based on type
-function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceFlags2, destGUID, destName, destFlags, destFlags2, ...)
+function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceFlags2, destGUID, destName, destFlags, destRaidFlags, ...)
   local etype = COMBAT_EVENTS[event]
   if not etype then return end
 
   --custom search first
-  if (db["CUSTOMEVENTS"]) and (self:CustomCombatEventSearch(etype, event, sourceName, sourceFlags, destName, destFlags, ...) == true) then
+  if (db["CUSTOMEVENTS"]) and (self:CustomCombatEventSearch(etype, event, sourceName, sourceFlags, destName, destFlags, destRaidFlags, ...) == true) then
     return
   end
 
@@ -641,7 +700,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
       environmentalType, amount, overDamage, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
     else
       spellId, spellName, spellSchool, amount, overDamage, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
-      texture = select(3, GetSpellInfo(spellId))
+      texture = GetSpellTexture(isWoWClassic and spellName or spellId)
     end
     text = tostring(self:ShortenValue(amount))
 
@@ -660,7 +719,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
   ------------buff/debuff gain--------
   elseif etype == "BUFF" then
     spellId, spellName, spellSchool, auraType, amount = select(1, ...)
-    texture = select(3, GetSpellInfo(spellId))
+    texture = GetSpellTexture(isWoWClassic and spellName or spellId)
     if toPlayer then
       if amount and amount > 1 then
         self:Display_Event("SHOW"..auraType, string_format("[%s %d]", self:ShortenString(spellName), amount), nil, nil, nil, nil, nil, nil, nil, texture)
@@ -671,7 +730,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
   ------------buff/debuff lose--------
   elseif etype == "FADE" then
     spellId, spellName, spellSchool, auraType, amount = select(1, ...)
-    texture = select(3, GetSpellInfo(spellId))
+    texture = GetSpellTexture(isWoWClassic and spellName or spellId)
     if toPlayer then
       if db["SHOWFADE"] then
         self:Display_Event("SHOWFADE", "-["..self:ShortenString(spellName).."]", nil, nil, nil, nil, nil, nil, nil, texture)
@@ -681,7 +740,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
   elseif etype == "HEAL" then
     spellId, spellName, spellSchool, amount, overHeal, absorbed, critical = select(1, ...)
     text = amount
-    texture = select(3, GetSpellInfo(spellId))
+    texture = GetSpellTexture(isWoWClassic and spellName or spellId)
 
     healtot = tostring(self:ShortenValue(amount))
     --heal filter
@@ -691,7 +750,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
       --self heals
       if toPlayer and fromPlayer then
         if (db["SHOWOVERHEAL"]) and overHeal > 0 then healtot = string_format("%s {%s}", tostring(self:ShortenValue(amount-overHeal)), tostring(self:ShortenValue(overHeal))) end
-        self:Display_Event("SHOWHEAL", "+"..healtot, critical, nil, nil, self:ShortenString(spellName), nil, nil, nil, texture)
+        self:Display_Event("SHOWHEAL", "+"..healtot, critical, nil, nil, nil, nil, nil, self:ShortenString(spellName), texture)
       --incoming heals
       else
         self:Display_Event("SHOWHEAL", "+"..healtot, critical, nil, nil, sourceName, nil, nil, spellName, texture)
@@ -711,7 +770,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
       missType = select(1, ...)
     else
       spellId, spellName, spellSchool, missType = select(1, ...)
-      texture = select(3, GetSpellInfo(spellId))
+      texture = GetSpellTexture(isWoWClassic and spellName or spellId)
     end
     text = _G[missType]
 
@@ -728,7 +787,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
   ------------leech and drains--------
   elseif etype == "DRAIN" then
     spellId, spellName, spellSchool, amount, powerType, extraAmount = select(1, ...)
-    texture = select(3, GetSpellInfo(spellId))
+    texture = GetSpellTexture(isWoWClassic and spellName or spellId)
     if toPlayer then
       self:Display_Event("SHOWPOWER", string_format("-%d %s", amount, string_nil(POWER_STRINGS[powerType])), nil, nil, nil, nil, nil, nil, spellName, texture)
     elseif fromPlayer and extraAmount then
@@ -742,7 +801,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
   ------------power gains-------------
   elseif etype == "POWER" then
     spellId, spellName, spellSchool, amount, overEnergize, powerType = select(1, ...)
-    texture = select(3, GetSpellInfo(spellId))
+    texture = GetSpellTexture(isWoWClassic and spellName or spellId)
 	if powerType == Enum.PowerType.ComboPoints then
 	  if not db["SHOWCOMBOPOINTS"] or not toPlayer then return end
 	  local sct_CP = UnitPower("player", Enum.PowerType.ComboPoints)
@@ -763,14 +822,14 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
   ------------interrupts--------------
   elseif etype == "INTERRUPT" then
     spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool = select(1, ...)
-    texture = select(3, GetSpellInfo(extraSpellId))
+    texture = GetSpellTexture(isWoWClassic and extraSpellName or extraSpellId)
     if toPlayer then
       self:Display_Event("SHOWINTERRUPT", self.LOCALS.Interrupted, nil, nil, nil, nil, nil, nil, extraSpellName, texture)
     end
   ------------dispels-----------------
   elseif etype == "DISPEL" then
     spellId, spellName, spellSchool, extraSpellId, extraSpellName, extraSpellSchool, auraType = select(1, ...)
-    texture = select(3, GetSpellInfo(extraSpellId))
+    texture = GetSpellTexture(isWoWClassic and extraSpellName or extraSpellId)
     if fromPlayer then
       self:Display_Event("SHOWDISPEL", self.LOCALS.Dispel, nil, nil, nil, nil, nil, nil, extraSpellName, texture)
     end
@@ -797,7 +856,7 @@ function SCT:ParseCombat(larg1, timestamp, event, hideCaster, sourceGUID, source
         if (petActionIndex and not select(7, GetPetActionInfo(petActionIndex))) then
           CD_watching[spellId] = {GetTime(), "pet", petActionIndex}
         elseif (not petActionIndex and spellId) then
-          CD_watching[spellId] = {GetTime(), "spell", spellId}
+          CD_watching[spellId] = {GetTime(), "spell", spellId, spellName}
         end
       end
 	end
@@ -813,7 +872,7 @@ function SCT:COMBAT_TEXT_UPDATE(event, larg1)
   if (larg1=="SPELL_ACTIVE") then
     --check for redundant display info
     if not self:CheckSkill(larg2.."!")  then
-      local texture = select(3, GetSpellInfo(larg2))
+      local texture = GetSpellTexture(isWoWClassic and larg3 or larg2)
       self:Display_Event("SHOWEXECUTE", larg2.."!", nil, nil, nil, nil, nil, nil, nil, texture)
     end
   elseif (larg1=="FACTION") then
@@ -856,7 +915,7 @@ end
 function SCT:EVENT_UseContainerItem(bag, slot)
   local itemId = GetContainerItemID(bag, slot)
   if (itemId) then
-    local texture = select(10, GetItemInfo(itemId))
+    local texture = GetItemIcon(itemId)
     CD_watching[itemId] = {GetTime(), "item", texture}
   end
 end
@@ -880,10 +939,10 @@ function SCT:CheckIfCooldownIsFinished()
       local getCooldownDetails
       if (value[2] == "spell") then
 		getCooldownDetails = self:Memoize(function()
-          local start, duration, enabled = GetSpellCooldown(value[3])
+          local start, duration, enabled = GetSpellCooldown(isWoWClassic and value[4] or value[3])
 		  return {
-			name = GetSpellInfo(value[3]),
-			texture = GetSpellTexture(value[3]),
+			name = (isWoWClassic and value[4] or GetSpellInfo(value[3])),
+			texture = GetSpellTexture(isWoWClassic and value[4] or value[3]),
 			start = start,
 			duration = duration,
 			enabled = enabled
@@ -944,7 +1003,7 @@ end
 --Set last reflection
 function SCT:ParseReflect(timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
   local spellId, spellName, spellSchool, amount, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
-  local texture = select(3, GetSpellInfo(spellId))
+  local texture = GetSpellTexture(isWoWClassic and spellName or spellId)
   --reflected events
   if (self.ReflectTarget == sourceName and sourceName == destName and self.ReflectSkill == spellName) then
     local parent
@@ -1043,7 +1102,7 @@ end
 --Displays a message at the top of the screen
 function SCT:DisplayMessage(msg, color, icon)
     self:SetMsgFont(SCT_MSG_FRAME)
-    if icon and db["ICON"] then msg = "|T"..icon..":"..(db[self.FRAMES_DATA_TABLE][SCT.MSG]["MSGSIZE"]).."|t"..msg end
+    if icon and db["ICON"] then msg = "|T"..icon..":"..(db[self.FRAMES_DATA_TABLE][SCT.MSG]["MSGSIZE"]).."|t "..msg end
     SCT_MSG_FRAME:AddMessage(msg, color.r, color.g, color.b, 1)
 end
 
@@ -1111,12 +1170,12 @@ end
 -------------------------
 --Regsiter SCT with other mods
 function SCT:RegisterOtherMods()
-  local frame = CreateFrame("FRAME", nil)
-  frame:SetScript("OnShow",function() SCT:ShowMenu() end)
+  local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer or SettingsCanvas)
+  frame:SetScript("OnShow", function() SCT:ShowMenu(true) end)
   frame.name = "SCT"
+  frame:Hide()
 
   InterfaceOptions_AddCategory(frame)
-  InterfaceOptionsFrame:SetMovable(true)
 end
 
 -------------------------
@@ -1368,9 +1427,7 @@ end
 function SCT:DisableHealingFlags()
   --disable WoW Healing Flags on first load
   if (SCT.db.profile["INITWOWFCTHEAL"]) then
-    if (not isWoWClassic) then -- CVar didn't exist in classic
-      SetCVar("floatingCombatTextCombatHealing", 0)
-	end
+    SetCVar("floatingCombatTextCombatHealing", 0)
     SCT.db.profile["INITWOWFCTHEAL"] = false
   end
 end

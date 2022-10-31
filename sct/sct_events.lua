@@ -119,7 +119,7 @@ end
 
 ----------------------
 --Find a custom combat event
-function SCT:CustomCombatEventSearch(etype, event, sourceName, sourceFlags, destName, destFlags, ...)
+function SCT:CustomCombatEventSearch(etype, event, sourceName, sourceFlags, destName, destFlags, destRaidFlags, ...)
   --locals
   local texture, spellId, spellName, spellSchool, missType, auraType, powerType, extraSpellId, extraSpellName, extraSpellSchool
   local amount, overDamage, school, resisted, blocked, absorbed, critical, glancing, crushing
