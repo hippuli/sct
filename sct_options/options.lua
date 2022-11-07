@@ -80,7 +80,7 @@ function SCT:OptionsFrame_OnShow()
     end
   end
 
-  local frame, swatch, sColor
+  local frame, swatch, sTexture, sColor
   -- Set Options values
   for key, value in pairs(SCT.OPTIONS.FrameEventFrames) do
     option1 = _G["SCTOptionsFrame"..value.index.."_CheckButton"]
@@ -113,7 +113,8 @@ function SCT:OptionsFrame_OnShow()
 
     --Color Swatch
     frame = _G["SCTOptionsFrame"..value.index]
-    swatch = _G["SCTOptionsFrame"..value.index.."_ColorSwatchNormalTexture"]
+    swatch = _G["SCTOptionsFrame"..value.index.."_ColorSwatch"]
+	sTexture = _G["SCTOptionsFrame"..value.index.."_ColorSwatchNormalTexture"]
     sColor = self.db.profile[self.COLORS_TABLE][value.SCTVar]
     if sColor then
       frame.r = sColor.r
@@ -121,12 +122,12 @@ function SCT:OptionsFrame_OnShow()
       frame.b = sColor.b
     end
     local k = value.SCTVar
-    local s = swatch:GetName()
+    local s = sTexture:GetName()
     local f = frame:GetName()
     local t = self.COLORS_TABLE
     frame.swatchFunc = function() self:OptionsFrame_SetColor(f, s, k, t) end
     frame.cancelFunc = function(x) self:OptionsFrame_CancelColor(f, s, k, t, x) end
-    swatch:SetVertexColor(sColor.r,sColor.g,sColor.b)
+    sTexture:SetVertexColor(sColor.r,sColor.g,sColor.b)
   end
 
   -- Set CheckButton states
@@ -228,21 +229,22 @@ function SCT:OptionsFrame_OnShow()
   for key, value in pairs(SCT.OPTIONS.FrameColors) do
     frame = _G["SCTOptionsFrame_Color"..value.index]
     label = _G["SCTOptionsFrame_Color"..value.index.."_Label"]
-    swatch = _G["SCTOptionsFrame_Color"..value.index.."NormalTexture"]
+    sTexture = _G["SCTOptionsFrame_Color"..value.index.."NormalTexture"]
     sColor = self.db.profile[self.SPELL_COLORS_TABLE][value.SCTVar]
     if sColor then
       frame.r = sColor.r
       frame.g = sColor.g
       frame.b = sColor.b
-      swatch:SetVertexColor(sColor.r,sColor.g,sColor.b)
+      sTexture:SetVertexColor(sColor.r,sColor.g,sColor.b)
     end
     local k = value.SCTVar
-    local s = swatch:GetName()
+    local s = sTexture:GetName()
     local f = frame:GetName()
     local t = self.SPELL_COLORS_TABLE
     frame.swatchFunc = function() self:OptionsFrame_SetColor(f, s, k, t) end
     frame.cancelFunc = function(x) self:OptionsFrame_CancelColor(f, s, k, t, x) end
     label:SetText(key)
+	frame.tooltipText = value.tooltipText
   end
 
   --Edit Boxes
@@ -289,9 +291,9 @@ end
 function SCT:OptionsFrame_SetColor(f,s,k,t)
   local r,g,b = ColorPickerFrame:GetColorRGB()
   local color={}
-  local swatch = _G[s]
+  local sTexture = _G[s]
   local frame = _G[f]
-  swatch:SetVertexColor(r,g,b)
+  sTexture:SetVertexColor(r,g,b)
   frame.r, frame.g, frame.b = r,g,b
   color.r, color.g, color.b = r,g,b
   --update back to config
@@ -305,9 +307,9 @@ end
 function SCT:OptionsFrame_CancelColor(f,s,k,t,prev)
   local r,g,b = prev.r, prev.g, prev.b
   local color={}
-  local swatch = _G[s]
+  local sTexture = _G[s]
   local frame = _G[f]
-  swatch:SetVertexColor(r, g, b)
+  sTexture:SetVertexColor(r, g, b)
   frame.r, frame.g, frame.b = r,g,b
   color.r, color.g, color.b = r,g,b
   -- Update back to config
