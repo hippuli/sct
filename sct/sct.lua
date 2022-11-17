@@ -82,7 +82,6 @@ local PlaySound = PlaySound
 local PlaySoundFile = PlaySoundFile
 local GetActionInfo = GetActionInfo
 local GetActionTexture = GetActionTexture
-local GetContainerItemID = GetContainerItemID
 local GetInventoryItemID = GetInventoryItemID
 local GetInventoryItemTexture = GetInventoryItemTexture
 local GetItemCooldown = GetItemCooldown
@@ -98,6 +97,14 @@ local GetSpellInfo = GetSpellInfo
 local GetSpellTexture = GetSpellTexture
 local GetTime = GetTime
 local IsInInstance = IsInInstance
+
+local C_Container_GetContainerItemID
+if C_Container and C_Container.GetContainerItemID then -- since df
+	C_Container_GetContainerItemID = C_Container.GetContainerItemID
+else -- before df
+	C_Container_GetContainerItemID = GetContainerItemID
+end
+
 
 -- see "Blizzard_Deprecated.lua" for 10.0.0
 local InterfaceOptions_AddCategory = InterfaceOptions_AddCategory;
@@ -913,7 +920,7 @@ end
 ----------------------
 -- Use Container Item event
 function SCT:EVENT_UseContainerItem(bag, slot)
-  local itemId = GetContainerItemID(bag, slot)
+  local itemId = C_Container_GetContainerItemID(bag, slot)
   if (itemId) then
     local texture = GetItemIcon(itemId)
     CD_watching[itemId] = {GetTime(), "item", texture}
@@ -1387,9 +1394,15 @@ function SCT:RegisterSelfEvents()
   hooksecurefunc("UseInventoryItem", function(slot)
     self:EVENT_UseInventoryItem(slot)
   end)
-  hooksecurefunc("UseContainerItem", function(bag, slot)
-    self:EVENT_UseContainerItem(bag, slot)
-  end)
+  if C_Container and C_Container.UseContainerItem then -- since df
+    hooksecurefunc(C_Container, "UseContainerItem", function(bag, slot)
+      self:EVENT_UseContainerItem(bag, slot)
+    end)
+  else -- before df
+    hooksecurefunc("UseContainerItem", function(bag, slot)
+      self:EVENT_UseContainerItem(bag, slot)
+    end)
+  end
 
   FrameForOnUpdate:SetScript("OnUpdate", self.EVENT_OnUpdate)
   
