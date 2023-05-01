@@ -1,13 +1,34 @@
 ------------------------------------------------------------------------
-r37 | frozn45 | 2022-11-12 18:49:30 +0000 (Sat, 12 Nov 2022) | 1 line
+r40 | frozn45 | 2023-05-01 11:29:25 +0000 (Mon, 01 May 2023) | 3 lines
 Changed paths:
+   M /trunk/sct/libs/AceAddon-3.0/AceAddon-3.0.lua
+   M /trunk/sct/libs/AceConsole-3.0/AceConsole-3.0.lua
+   M /trunk/sct/libs/AceDB-3.0/AceDB-3.0.lua
+   M /trunk/sct/libs/AceHook-3.0/AceHook-3.0.lua
+   M /trunk/sct/libs/AceTimer-3.0/AceTimer-3.0.lua
+   M /trunk/sct/libs/CallbackHandler-1.0/CallbackHandler-1.0.lua
+   M /trunk/sct/libs/LibSharedMedia-3.0/CHANGES.txt
+   M /trunk/sct/libs/LibSharedMedia-3.0/CallbackHandler-1.0/CallbackHandler-1.0.lua
+   M /trunk/sct/libs/LibSharedMedia-3.0/LibSharedMedia-3.0/LibSharedMedia-3.0.lua
+   M /trunk/sct/libs/LibSharedMedia-3.0/LibSharedMedia-3.0.toc
+   M /trunk/sct/libs/LibSharedMedia-3.0/LibSharedMedia-3.0_TBC.toc
+   M /trunk/sct/libs/LibSharedMedia-3.0/LibSharedMedia-3.0_Vanilla.toc
+   M /trunk/sct/libs/LibSharedMedia-3.0/LibSharedMedia-3.0_Wrath.toc
+   M /trunk/sct/libs/LibStub/LibStub.lua
    M /trunk/sct/sct-Classic.toc
    M /trunk/sct/sct-WOTLKC.toc
-   M /trunk/sct/sct.lua
    M /trunk/sct/sct.toc
    M /trunk/sct_options/sct_options-Classic.toc
    M /trunk/sct_options/sct_options-WOTLKC.toc
    M /trunk/sct_options/sct_options.toc
+
+- updated libs
+- bumped toc to 10.0.7
+- classic: bumped toc to 3.4.1
+------------------------------------------------------------------------
+r39 | frozn45 | 2022-11-12 19:52:02 +0000 (Sat, 12 Nov 2022) | 1 line
+Changed paths:
+   M /trunk/sct/sct.lua
 
 - fixed error regarding function UseContainerItem() (replaced with C_Container.UseContainerItem()) and GetContainerItemID() (replaced with C_Container.GetContainerItemID()) with upcoming patch 10.0.2
 ------------------------------------------------------------------------

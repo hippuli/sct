@@ -1,8 +1,8 @@
-## Interface: 30400
+## Interface: 30401
 ## Title: SCT Options
 ## Notes: Options menu for SCT (LoadOnDemand)
 ## Author: Grayhoof, Picpok, Frozn45
-## Version: 10.0_2
+## Version: 10.0_3
 ## DefaultState: Enabled
 ## LoadOnDemand: 1
 ## Dependencies: sct
